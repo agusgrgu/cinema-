@@ -15,10 +15,10 @@ def mostrar_cartelera(cantentrada):
     for i in range(len(peliculas)):
         print ("Película: ", peliculas[i], "Precio de entrada: ", entradaprecio[i], "Entradas disponibles: ", cantentrada)
 
-def modifica_la pelicula(pelicula):
+def modifica_la_pelicula(pelicula):
     #modifica nombre y precio de la pelicula
     if pelicula in peliculas:
-        modifica=input("que desea modificar? nombre o precio")
+        modificar = input("que desea modificar? nombre o precio")
         if modificar == "precio":
             precioact = input("ingrese el precio de la pelicula")
             entradaprecio[[peliculas.index(pelicula)]] =precioact
