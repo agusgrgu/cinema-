@@ -2,20 +2,16 @@ def crear_sala(filas, columnas):
     """crea una matriz para representar la sala
     las butacas comienzan en forma de "L" (libre) y
     Devuelve la matriz creada"""
-    sala = []
-    for i in range(filas):
-        fila = []
-        for j in range(columnas):
-            fila.append("L")
-        sala.append(fila)
+    # Se reemplaza la creación manual por Comprensión de Listas
+    sala = [["L" for j in range(columnas)] for i in range(filas)]
     return sala
     
 def imprimir_sala(sala):
     """recibe la matriz de la sala y la muestra en pantalla
     ordenada en filas y columnas"""
-    for i in range(len(sala)):
-        for j in range(len(sala[i])):
-            print(sala[i][j], end=" ")
+    for fila in sala:
+        for butaca in fila:
+            print(butaca, end=" ")
         print()
         
 def verificar_butaca(sala, fila, columna):
@@ -46,12 +42,6 @@ def contar_butacas(sala):
     """recorre toda la sala y cuenta cuántas butacas estan "L" (libres)
     y cuántas están "O" (ocupadas)
     devuelve ambos totales para poder calcular estadisticas"""
-    libres = 0
-    ocupadas = 0
-    for i in range(len(sala)):
-        for j in range(len(sala[i])):
-            if sala[i][j] == "L":
-                libres = libres + 1
-            elif sala[i][j] == "O":
-                ocupadas = ocupadas + 1
+    libres = sum([fila.count("L") for fila in sala])
+    ocupadas = sum([fila.count("O") for fila in sala])
     return libres, ocupadas
