@@ -1,14 +1,29 @@
-peliculas= []
-entradaprecio= []
-def agrega_pelicula(cantidad):
-    #agrega la pelicula y su precio
-    for i in range(cantidad):
-        nombre = input("Ingrese el nombre de la película: ")
-        precio= input("¿cuanto costara cada entrada?")
-        entradaprecio.append(precio)
-        peliculas.append(nombre)
-    print("Películas agregadas exitosamente.")
-    return peliculas, entradaprecio
+import main
+peliculas = []
+entradaprecio = []
+
+def agrega_pelicula(lista_salas, lista_id_sala, lista_sala_asignada):
+    """
+    Agrega una pelicula a la cartelera.
+    Y le asigna una sala de cine.
+
+    Esta función se puede acceder desde el menú de administrador.
+    """
+    nombre_pelicula = input("\nIngrese el nombre de la pelicula a agregar: ")
+    main.consultar_tamaño_sala(lista_salas, lista_id_sala)
+    asignar_sala = main.verificar_entero()    
+    while lista_id_sala[asignar_sala-1] in lista_sala_asignada or asignar_sala > len(lista_id_sala):
+        if lista_id_sala[asignar_sala-1] in lista_sala_asignada:
+          print("\nLa sala ya tiene asignada una pelicula.")
+          main.consultar_tamaño_sala(lista_salas, lista_id_sala)
+          asignar_sala = main.verificar_entero()
+        if asignar_sala > len(lista_id_sala):
+          print("\nLa sala no existe.")
+          main.consultar_tamaño_sala(lista_salas, lista_id_sala)
+          asignar_sala = main.verificar_entero()
+    
+    asignar_sala = lista_id_sala[asignar_sala-1]
+    return nombre_pelicula , asignar_sala
 
 def mostrar_cartelera(cantentrada):
     #muestra las entradas y sus precios junto con las entradas disponibles
@@ -27,13 +42,3 @@ def modifica_la_pelicula(pelicula):
             peliculas[[peliculas.index(pelicula)]] =nombreact
         else:
             print("invalido")
-
-
-def pelicula_fuera(pelicula):
-    #elimina la pelicula de la cartelera
-    if pelicula in peliculas:
-        peliculas.remove(pelicula)
-        entradaprecio.pop(peliculas.index(pelicula))
-        print("Película eliminada exitosamente.")
-    else:
-        print("La película no se encuentra en la cartelera.")

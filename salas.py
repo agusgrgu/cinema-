@@ -1,3 +1,4 @@
+
 def crear_sala(filas, columnas):
     """crea una matriz para representar la sala
     las butacas comienzan en forma de "L" (libre) y
