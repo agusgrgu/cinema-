@@ -1,7 +1,30 @@
 import random
 import salas
 import estadisticas
-import hola
+import cartelera
+
+def agregar_pelicula(lista_salas, lista_id_sala, lista_sala_asignada):
+    """
+    Agrega una pelicula a la cartelera.
+    Y le asigna una sala de cine.
+
+    Esta función se puede acceder desde el menú de administrador.
+    """
+    nombre_pelicula = input("\nIngrese el nombre de la pelicula a agregar: ")
+    consultar_tamaño_sala(lista_salas, lista_id_sala)
+    asignar_sala = verificar_entero()    
+    while lista_id_sala[asignar_sala-1] in lista_sala_asignada or asignar_sala > len(lista_id_sala):
+        if lista_id_sala[asignar_sala-1] in lista_sala_asignada:
+          print("\nLa sala ya tiene asignada una pelicula.")
+          consultar_tamaño_sala(lista_salas, lista_id_sala)
+          asignar_sala = verificar_entero()
+        if asignar_sala > len(lista_id_sala):
+          print("\nLa sala no existe.")
+          consultar_tamaño_sala(lista_salas, lista_id_sala)
+          asignar_sala = verificar_entero()
+    
+    asignar_sala = lista_id_sala[asignar_sala-1]
+    return nombre_pelicula , asignar_sala
 
 def menu_principal():
     """
@@ -153,7 +176,7 @@ def main():
                       while gestionar_cartelera != 3:
                           if gestionar_cartelera == 1 and len(lista_sala_asignada) != len(lista_id_sala): # AGREGAR PELICULA SI Y SOLO SI HAY SALAS DISPONIBLES
                               print("Agregar pelicula")
-                              nombre_pelicula , asignar_sala = hola.agrega_pelicula(lista_salas, lista_id_sala, lista_sala_asignada)
+                              nombre_pelicula , asignar_sala = agregar_pelicula(lista_salas, lista_id_sala, lista_sala_asignada)
                               lista_peliculas.append(nombre_pelicula)
                               lista_sala_asignada.append(asignar_sala)
 
