@@ -1,47 +1,28 @@
-def crear_sala(filas, columnas):
-    """crea una matriz para representar la sala
-    las butacas comienzan en forma de "L" (libre) y
-    Devuelve la matriz creada"""
-    # Se reemplaza la creación manual por Comprensión de Listas
+from functools import reduce
+
+def crear_sala(filas, columnas):    
     sala = [["L" for j in range(columnas)] for i in range(filas)]
     return sala
     
 def imprimir_sala(sala):
-    """recibe la matriz de la sala y la muestra en pantalla
-    ordenada en filas y columnas"""
     for fila in sala:
         for butaca in fila:
             print(butaca, end=" ")
         print()
         
 def verificar_butaca(sala, fila, columna):
-    """comprueba que la fila y columna ingresadas existan dentro
-    de los limites de la sala y que la butaca este "L" (libre)
-    devuelve True si está disponible o False si no existe o está ocupada"""
-    if fila >= 0 and fila < len(sala) and columna >= 0 and columna < len(sala[0]):
-        if sala[fila][columna] == "L":
-            return True
-        else:
-            return False
-    else:
-        return False 
+    return fila >= 0 and fila < len(sala) and columna >= 0 and columna < len(sala[0]) and sala[fila][columna] == "L"
 
 def ocupar_butaca(sala, fila, columna):
-    """cambia el estado de una butaca a "O" (ocupada) si es que
-    esta disponible se usa verificar_butaca() para validarlo
-    devuelve True si se pudo reservar o False si falló."""
-    if verificar_butaca(sala, fila, columna) == True:
+    if verificar_butaca(sala, fila, columna):
         sala[fila][columna] = "O"
         print("Reserva exitosa: La butaca ha sido ocupada.")
         return True 
     else:
-        print("Error!: La butaca no existe o ya esta ocupada.")
+        print("Error!: La butaca noo existe o ya esta ocupada.")
         return False
 
 def contar_butacas(sala):
-    """recorre toda la sala y cuenta cuántas butacas estan "L" (libres)
-    y cuántas están "O" (ocupadas)
-    devuelve ambos totales para poder calcular estadisticas"""
-    libres = sum([fila.count("L") for fila in sala])
-    ocupadas = sum([fila.count("O") for fila in sala])
+    libres = reduce(lambda a, b: a + b, map(lambda f: f.count("L"), sala))
+    ocupadas = reduce(lambda a, b: a + b, map(lambda f: f.count("O"), sala))
     return libres, ocupadas
