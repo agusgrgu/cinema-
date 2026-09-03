@@ -18,8 +18,8 @@ def mostrar_cartelera(cantentrada):
 def modifica_la_pelicula(pelicula):
     #modifica nombre y precio de la pelicula
     if pelicula in peliculas:
-        modifica=input("que desea modificar? nombre o precio")
-        if modifica == "precio":
+        modificar = input("que desea modificar? nombre o precio")
+        if modificar == "precio":
             precioact = input("ingrese el precio de la pelicula")
             entradaprecio[[peliculas.index(pelicula)]] =precioact
         elif modifica == "nombre":
