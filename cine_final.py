@@ -185,13 +185,13 @@ def elegir_pelicula():
         print(i + 1, nombres_peliculas[i])
         i = i + 1
 
-    opcion = int(input("Elegí una pelicula: "))
-    print("su costo sera", entradaprecio[opcion-1])
-    while opcion < 1 or opcion > len(nombres_peliculas):
+    opcion = verificar_entero()
+    while opcion < 1 or opcion > len(nombres_peliculas) or opcion == "":
         print("Opcion invalida")
-        opcion = int(input("Elegí una pelicula: "))
+        opcion = verificar_entero()
 
     pelicula = nombres_peliculas[opcion - 1]
+    print("su costo sera", entradaprecio[opcion-1])
 
     print("Película elegida:", pelicula)
     print("Horarios disponibles:")
@@ -202,11 +202,11 @@ def elegir_pelicula():
         print(i + 1, horarios_peliculas[opcion - 1][i])
         i = i + 1
 
-    horario_opcion = int(input("Elegí un horario: "))
+    horario_opcion = verificar_entero()
 
-    while horario_opcion < 1 or horario_opcion > len(horarios_peliculas[opcion - 1]):
+    while horario_opcion < 1 or horario_opcion > len(horarios_peliculas[opcion - 1]) or horario_opcion =="":
         print("Horario invalido")
-        horario_opcion = int(input("Elegí un horario: "))
+        horario_opcion = verificar_entero()
 
     horario = horarios_peliculas[opcion - 1][horario_opcion - 1]
 
@@ -231,12 +231,12 @@ def realizar_reserva():
     cliente = input("Ingresá el nombre del cliente: ")
 
     pelicula, horario = elegir_pelicula()
-
-    cantidad = int(input("Cuantas entradas querés reservar: "))
+    print("Ingrese la cantidad de entradas que desea reservar:")
+    cantidad = verificar_entero()
 
     while cantidad <= 0:
         print("La cantidad debe ser mayor a 0")
-        cantidad = int(input("Cuantas entradas querés reservar: "))
+        cantidad = verificar_entero()
 
     asientos = []
 
@@ -244,8 +244,10 @@ def realizar_reserva():
 
     while i < cantidad:
         imprimir_sala(sala)
-        fila2= int(input("Ingresá la fila"))
-        columna2 = int(input("Ingresá la columna"))
+        print("ingrese la fila ")
+        fila2= verificar_entero()
+        print("ingrese la columna ")
+        columna2 = verificar_entero()
         fila2= fila2-1
         columna2= columna2 - 1
         ocupar_butaca(sala, fila2, columna2)
