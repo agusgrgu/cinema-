@@ -1,62 +1,31 @@
-# salas.py
 import re
+from functools import reduce
+
 def crear_sala(filas, columnas):
-    """crea una matriz para representar la sala
-    las butacas comienzan en forma de "L" (libre) y
-    Devuelve la matriz creada"""
-    sala = []
-    for i in range(filas):
-        fila = []
-        for j in range(columnas):
-            fila.append("L")
-        sala.append(fila)
+    sala = [["L" for j in range(columnas)] for i in range(filas)]
     return sala
 
 def imprimir_sala(sala):
-    """recibe la matriz de la sala y la muestra en pantalla
-    ordenada en filas y columnas"""
-    for i in range(len(sala)):
-        for j in range(len(sala[i])):
-            print(sala[i][j], end=" ")
+    for fila in sala:
+        for butaca in fila:
+            print(butaca, end=" ")
         print()
 
 def verificar_butaca(sala, fila, columna):
-    """comprueba que la fila y columna ingresadas existan dentro
-    de los limites de la sala y que la butaca este "L" (libre)
-    devuelve True si está disponible o False si no existe o está ocupada"""
-    if fila >= 0 and fila < len(sala) and columna >= 0 and columna < len(sala[0]):
-        if sala[fila][columna] == "L":
-            return True
-        else:
-            return False
-    else:
-        return False
+    return fila >= 0 and fila < len(sala) and columna >= 0 and columna < len(sala[0]) and sala[fila][columna] == "L"
 
 def ocupar_butaca(sala, fila, columna):
-    """cambia el estado de una butaca a "O" (ocupada) si es que
-    esta disponible se usa verificar_butaca() para validarlo
-    devuelve True si se pudo reservar o False si falló."""
-    if verificar_butaca(sala, fila, columna) == True:
+    if verificar_butaca(sala, fila, columna):
         sala[fila][columna] = "O"
         print("Reserva exitosa: La butaca ha sido ocupada.")
-        return True
+        return True 
     else:
-        print("Error!: La butaca no existe o ya esta ocupada.")
+        print("Error!: La butaca noo existe o ya esta ocupada.")
         return False
 
 def contar_butacas(sala):
-    """recorre toda la sala y cuenta cuántas butacas estan "L" (libres)
-    y cuántas están "O" (ocupadas)
-    devuelve ambos totales para poder calcular estadisticas"""
-    libres = 0
-    ocupadas = 0
-    for i in range(len(sala)):
-        for j in range(len(sala[i])):
-            if sala[i][j] == "L":
-                libres = libres + 1
-            elif sala[i][j] == "O":
-                ocupadas = ocupadas + 1
-    print (libres, ocupadas)
+    libres = reduce(lambda a, b: a + b, map(lambda f: f.count("L"), sala))
+    ocupadas = reduce(lambda a, b: a + b, map(lambda f: f.count("O"), sala))
     return libres, ocupadas
 
 
@@ -139,7 +108,7 @@ def imprimir_funciones_admin():
     1 - Gestionar cartelera
     2 - Cambiar precio de entradas
     3 - Crear sala de cine
-    4 - Mostrar estadisticas
+    4 - ventas
     5 - salir
     """)
     eleccion = verificar_entero()
@@ -182,8 +151,31 @@ def verificar_entero():
 """
 -------------------------------------- ↓↓↓ EMPIEZA entradas y reservas ↓↓↓ ----------------------------------------------------------------------
 """
-horario_peliculas= [10_00, 14_20, 18_30]
-def elegir_pelicula(nombres_peliculas, horario_peliculas):
+# LISTAS DE PELICULAS
+
+nombres_peliculas = [
+    "avengers",
+    "star wars II",
+    "titanic"
+]
+
+horarios_peliculas = [
+    ["14:00", "18:00", "22:00"],
+    ["15:00", "19:00", "21:00"],
+    ["16:00", "20:00", "23:00"]
+]
+
+
+# LISTAS DE RESERVAS
+
+clientes_reservas = []
+peliculas_reservas = []
+horarios_reservas = []
+cantidades_reservas = []
+asientos_reservas = []
+
+
+def elegir_pelicula():
 
     print("===== PELICULAS DISPONIBLES =====")
 
@@ -193,30 +185,30 @@ def elegir_pelicula(nombres_peliculas, horario_peliculas):
         print(i + 1, nombres_peliculas[i])
         i = i + 1
 
-    opcion = int(input("Elegí una pelicula: "))
-
-    while opcion < 1 or opcion > len(nombres_peliculas):
+    opcion = verificar_entero()
+    while opcion < 1 or opcion > len(nombres_peliculas) or opcion == "":
         print("Opcion invalida")
-        opcion = int(input("Elegí una pelicula: "))
+        opcion = verificar_entero()
 
     pelicula = nombres_peliculas[opcion - 1]
+    print("su costo sera", entradaprecio[opcion-1])
 
     print("Película elegida:", pelicula)
     print("Horarios disponibles:")
 
     i = 0
 
-    while i < len(horario_peliculas[opcion - 1]):
-        print(i + 1, horario_peliculas[opcion - 1][i])
+    while i < len(horarios_peliculas[opcion - 1]):
+        print(i + 1, horarios_peliculas[opcion - 1][i])
         i = i + 1
 
-    horario_opcion = int(input("Elegí un horario: "))
+    horario_opcion = verificar_entero()
 
-    while horario_opcion < 1 or horario_opcion > len(horario_peliculas[opcion - 1]):
+    while horario_opcion < 1 or horario_opcion > len(horarios_peliculas[opcion - 1]) or horario_opcion =="":
         print("Horario invalido")
-        horario_opcion = int(input("Elegí un horario: "))
+        horario_opcion = verificar_entero()
 
-    horario = horario_peliculas[opcion - 1][horario_opcion - 1]
+    horario = horarios_peliculas[opcion - 1][horario_opcion - 1]
 
     return pelicula, horario
 
@@ -238,24 +230,27 @@ def realizar_reserva():
 
     cliente = input("Ingresá el nombre del cliente: ")
 
-    pelicula, horario = elegir_pelicula(peliculas, horario_peliculas)
-
-    cantidad = int(input("Cuantas entradas querés reservar: "))
+    pelicula, horario = elegir_pelicula()
+    print("Ingrese la cantidad de entradas que desea reservar:")
+    cantidad = verificar_entero()
 
     while cantidad <= 0:
         print("La cantidad debe ser mayor a 0")
-        cantidad = int(input("Cuantas entradas querés reservar: "))
+        cantidad = verificar_entero()
 
     asientos = []
 
     i = 0
 
     while i < cantidad:
-
-        asiento = input("Ingresá el asiento: ")
-
-        asientos.append(asiento)
-
+        imprimir_sala(sala)
+        print("ingrese la fila ")
+        fila2= verificar_entero()
+        print("ingrese la columna ")
+        columna2 = verificar_entero()
+        fila2= fila2-1
+        columna2= columna2 - 1
+        ocupar_butaca(sala, fila2, columna2)
         i = i + 1
 
     guardar_reserva(cliente, pelicula, horario, cantidad, asientos)
@@ -265,7 +260,6 @@ def realizar_reserva():
     print("Película:", pelicula)
     print("Horario:", horario)
     print("Cantidad de entradas:", cantidad)
-    print("Asientos:", asientos)
 
 
 def buscar_reservas_cliente():
@@ -289,17 +283,26 @@ def buscar_reservas_cliente():
             print("Película:", peliculas_reservas[i])
             print("Horario:", horarios_reservas[i])
             print("Cantidad de entradas:", cantidades_reservas[i])
-            print("Asientos:", asientos_reservas[i])
 
         i = i + 1
 
     if encontrado == False:
         print("No se encontraron reservas")
-
+def ventas():
+    print("===== VENTAS =====")
+    total_ventas = 0
+    for i in range(len(cantidades_reservas)):
+        pelicula = peliculas_reservas[i]
+        cantidad = cantidades_reservas[i]
+        precio = entradaprecio[nombres_peliculas.index(pelicula)]
+        total_venta = cantidad * precio
+        total_ventas += total_venta
+        print(f"Cliente: {clientes_reservas[i]}, Película: {pelicula}, Cantidad de entradas: {cantidad}, Total venta: ${total_venta}")
+    print(f"Total de ventas: ${total_ventas}")
 """
 -------------------------------------- ↓↓↓ EMPIEZA EL PROGRAMA PRINCIPAL ↓↓↓ ----------------------------------------------------------------------
 """
-
+sala=crear_sala(2, 3)
 
 def main():
 
@@ -310,7 +313,8 @@ def main():
     lista_contraseñas = []
     lista_id_usuario = []
     contraseña_admin = "admin"
-
+    numeros_telefonicos = []
+    
     funciones_principal = menu_principal()
     while funciones_principal != 2:
         if funciones_principal == 1:
@@ -323,7 +327,10 @@ def main():
                     usuario_valido = re.match(r'^[a-zA-Z0-9]+$', usuario)
                 
             contraseña = input("Cree una contraseña: ")
-
+            numero_telefonico = input("Ingrese su número de teléfono y nombre completo para ser comunicado en caso de que se necesite ")
+            patron_telefono = "[0-9]{2}-[0-9]{4}-[0-9]{4}"
+            numero= re.findall(patron_telefono, numero_telefonico)
+            numeros_telefonicos.append(numero_telefonico)
 
             if usuario == "admin" and contraseña == contraseña_admin:
                 """
@@ -368,10 +375,6 @@ def main():
                       columnas= input("Ingrese la cantidad de columnas: ")
                       crear_sala(filas, columnas)
 
-                  elif funciones_admin == 4:
-                      # MOSTRAR ESTADISTICAS
-                      print("Mostrar estadisticas")
-
                   else:
                       print("Opción inválida. Intente nuevamente.")
                   funciones_admin = imprimir_funciones_admin()
@@ -402,7 +405,7 @@ def main():
                     elif funciones_usuario == 3:
                         # CONSULTAR RESERVAS
                         print("Consultar reservas")
-                        contarbutacas = contar_butacas(sala)
+                        buscar_reservas_cliente()
 
                     else:
                         print("Opción inválida. Intente nuevamente.")
