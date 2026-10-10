@@ -38,13 +38,14 @@ def contar_butacas(sala):
 peliculas= ["titanic", "star wars II", "avengers" ]
 entradaprecio= [650, 420, 135]
 def agrega_pelicula(cantidad):
-    #agrega la pelicula y su precio
     for i in range(cantidad):
         nombre = input("Ingrese el nombre de la película: ")
-        precio= input("¿cuanto costara cada entrada?")
-        entradaprecio.append(precio)
+        print("¿Elija el precio de la entrada?")
+        precio = verificar_entero()
         peliculas.append(nombre)
-    print("Películas agregadas exitosamente.")
+        entradaprecio.append(precio)
+        horarios_peliculas.append(["14:00", "18:00", "22:00"])
+    print("Peliculas agregadas exitosamente!")
     return peliculas, entradaprecio
 
 def mostrar_cartelera():
