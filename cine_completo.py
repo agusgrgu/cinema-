@@ -53,18 +53,18 @@ def mostrar_cartelera():
         print ("Película: ", peliculas[i], "Precio de entrada: ", entradaprecio[i])
 
 def modifica_la_pelicula(pelicula):
-    #modifica nombre y precio de la pelicula
     if pelicula in peliculas:
-        modificar = input("que desea modificar? nombre o precio")
+        posicion = peliculas.index(pelicula)
+        modificar = input("Elija que modificar: nombre o precio: ")
         if modificar == "precio":
-            precioact = input("ingrese el precio de la pelicula")
-            entradaprecio[[peliculas.index(pelicula)]] =precioact
+            print("ingrese el nuevo precio")
+            entradaprecio[posicion] = verificar_entero()
         elif modificar == "nombre":
-            nombreact = input("ingrese el nombre de la pelicula")
-            peliculas[[peliculas.index(pelicula)]] =nombreact
+            peliculas[posicion] = input("ingrese el nuevo nombre: ")
         else:
             print("invalido")
-
+    else:
+        print("La película no se encuentra en la cartelera")
 
 def pelicula_fuera(pelicula):
     #elimina la pelicula de la cartelera
@@ -145,7 +145,7 @@ def verificar_entero():
     while not entrada.isdigit():
         print("Error: Debe ingresar un número entero.")
         entrada = input("Ingrese su opcion: ")
-
+        
     return int(entrada)
 
 """
@@ -263,31 +263,22 @@ def realizar_reserva():
 
 
 def buscar_reservas_cliente():
-
     print("===== BUSCAR RESERVAS =====")
+    cliente = input("Ingrese el nombre del cliente: ")
 
-    cliente = input("Ingresá el nombre del cliente: ")
+    indices = list(filter(lambda i: clientes_reservas[i] == cliente, range(len(clientes_reservas))))
 
-    encontrado = False
+    for i in indices:
+        print("===== RESERVA =====")
+        print("Cliente:", clientes_reservas[i])
+        print("Película:", peliculas_reservas[i])
+        print("Horario:", horarios_reservas[i])
+        print("Cantidad de entradas:", cantidades_reservas[i])
+        print("Asientos (fila, columna):", asientos_reservas[i])
 
-    i = 0
-
-    while i < len(clientes_reservas):
-
-        if clientes_reservas[i] == cliente:
-
-            encontrado = True
-
-            print("===== RESERVA =====")
-            print("Cliente:", clientes_reservas[i])
-            print("Película:", peliculas_reservas[i])
-            print("Horario:", horarios_reservas[i])
-            print("Cantidad de entradas:", cantidades_reservas[i])
-
-        i = i + 1
-
-    if encontrado == False:
-        print("No se encontraron reservas")
+    if len(indices) == 0:
+        print("NO se encontraron reservas")
+        
 def ventas():
     print("===== VENTAS =====")
     total_ventas = 0
