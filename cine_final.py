@@ -327,11 +327,24 @@ def main():
                     usuario_valido = re.match(r'^[a-zA-Z0-9]+$', usuario)
                 
             contraseña = input("Cree una contraseña: ")
-            numero_telefonico = input("Ingrese su número de teléfono y nombre completo para ser comunicado en caso de que se necesite ")
+            numero_telefonico = input("Ingrese su número de teléfono para ser comunicado en caso de que se necesite ")
             patron_telefono = "[0-9]{2}-[0-9]{4}-[0-9]{4}"
             numero= re.findall(patron_telefono, numero_telefonico)
-            numeros_telefonicos.append(numero_telefonico)
-
+            if numero in numeros_telefonicos:
+                print("El número de teléfono ya está registrado.")
+            elif numero not in numeros_telefonicos and numero:
+                numeros_telefonicos.append(numero_telefonico)
+                print("Número de teléfono válido y agregado a la lista.")
+                print(numeros_telefonicos)#borrar tras pruebas
+            else:
+                while not numero:
+                    print("Error: El número de teléfono debe tener el formato 00-0000-0000.")
+                    numero_telefonico_corregido = input("Ingrese su número de teléfono para ser comunicado en caso de que se necesite ")
+                    numero= re.findall(patron_telefono, numero_telefonico_corregido)
+                numeros_telefonicos.append(numero)
+                print("Número de teléfono válido y agregado a la lista.")
+                print(numeros_telefonicos)#borrar tras pruebas
+           
             if usuario == "admin" and contraseña == contraseña_admin:
                 """
                 ---------------------------- ↓↓↓ EMPIEZA BLOQUE DE FUNCIONES DE ADMIN ↓↓↓ ----------------------------------------------------
