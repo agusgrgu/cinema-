@@ -351,6 +351,11 @@ def main():
                 """
                 while contraseña_admin == "admin":
                     contraseña_admin = input("Cree una contraseña para administradores: ")
+                    contraseña_valida= filter(lambda x: x.isalnum(), contraseña_admin)
+                    tuplecontra= tuple(contraseña_valida)
+                    del contraseña_admin
+                    del contraseña_valida
+                    print(contraseña_admin, contraseña_valida, tuplecontra)
                 print("\nBienvenido al menu de administradores")
                 funciones_admin = imprimir_funciones_admin()
 
