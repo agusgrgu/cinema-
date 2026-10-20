@@ -355,7 +355,6 @@ def main():
                     tuplecontra= tuple(contraseña_valida)
                     del contraseña_admin
                     del contraseña_valida
-                    print(contraseña_admin, contraseña_valida, tuplecontra)
                 print("\nBienvenido al menu de administradores")
                 funciones_admin = imprimir_funciones_admin()
 
