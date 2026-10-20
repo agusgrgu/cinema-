@@ -30,6 +30,7 @@ def agrega_pelicula(cantidad):
         else:
             peliculas[nombre] = precio
     print("Películas agregadas exitosamente.")
+    #verificada
 
 def mostrar_cartelera():
     #muestra las entradas y sus precios junto con las entradas disponibles
@@ -39,21 +40,36 @@ def mostrar_cartelera():
 def modificar_pelicula(pelicula):
     #modifica precio o nombre de la pelicula
     if pelicula in peliculas:
-        print("¿Qué desea modificar?")
-        print("1. Nombre de la película")
-        print("2. Precio de la entrada")
-        opcion = verificar_entero()
 
-        if opcion == 1:
-            nuevo_nombre = input("Ingrese el nuevo nombre de la película: ")
-            peliculas[nuevo_nombre] = peliculas.pop(pelicula)
-            print("Nombre de la película modificado exitosamente.")
-        elif opcion == 2:
-            nuevo_precio = verificar_entero()
-            peliculas[pelicula] = nuevo_precio
-            print("Precio de la entrada modificado exitosamente.")
-        else:
-            print("Opción inválida.")
+        opcioninv= True
+        while opcioninv == True:
+            print("¿Qué desea modificar?")
+            print("1. Nombre de la película")
+            print("2. Precio de la entrada")
+            opcion = verificar_entero()
+            if opcion == 1:
+                nuevo_nombre = input("Ingrese el nuevo nombre de la película: ")
+                peliculas[nuevo_nombre] = peliculas.pop(pelicula)
+                print("Nombre de la película modificado exitosamente.")
+                opcioninv= False
+            elif opcion == 2:
+                print("Ingrese el nuevo precio de la entrada: ")
+                print("¿cuanto costara cada entrada?")
+                while True:
+                    try:
+                        nuevo_precio = int(input("Ingrese el precio de la entrada: "))
+                        if nuevo_precio > 0:
+                              break
+                        print("Error: El precio debe ser mayor que cero.")
+                    except ValueError:
+                        print("Error: Debe ingresar un número entero para el precio.")
+                peliculas[pelicula] = nuevo_precio
+                print("Precio de la entrada modificado exitosamente.")
+                opcioninv= False
+            else:
+                print("Opción inválida, inice de nuevo e ingrse 1 o 2.")
+                opcioninv= True
+            
     else:
         print("La película no se encuentra en la cartelera.")
 def eliminar_pelicula(pelicula):
@@ -64,4 +80,4 @@ def eliminar_pelicula(pelicula):
         print("La película no se encuentra en la cartelera.")
 
 
-agrega_pelicula(3)
+modificar_pelicula("titanic")
