@@ -69,15 +69,14 @@ def modificar_pelicula(pelicula):
             else:
                 print("Opción inválida, inice de nuevo e ingrse 1 o 2.")
                 opcioninv= True
-            
+        
     else:
         print("La película no se encuentra en la cartelera.")
+        
 def eliminar_pelicula(pelicula):
     if pelicula in peliculas:
         del peliculas[pelicula]
         print("Película eliminada exitosamente.")
     else:
         print("La película no se encuentra en la cartelera.")
-
-
-modificar_pelicula("titanic")
+print(peliculas.values())
