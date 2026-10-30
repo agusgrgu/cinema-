@@ -29,23 +29,17 @@ def es_contraseña_valida(contraseña):
     return len(contraseña) >= 4 and len(alfanumericos) == len(contraseña)
 
 """
-# =====================================================================
-# ENTRADA DE DATOS
-# =====================================================================
+=====================================================================
+  ENTRADA DE DATOS
+=====================================================================
 """
 
 def verificar_entero(mensaje="Ingrese su opcion: "):
-    """
-    Verifica que el valor ingresado sea un número entero.
-    """
-    entrada = input(mensaje).strip()
-
-    while not entrada.isdigit():
-        print("Error: Debe ingresar un número entero.")
-        entrada = input(mensaje).strip()
-
-    return int(entrada)
-
+    while True:
+        try:
+            return int(input(mensaje))
+        except ValueError:
+            print("Error: Debe ingresar un número entero.")
 
 def pedir_opcion(minimo, maximo, mensaje="Ingrese su opcion: "):
     """
@@ -232,6 +226,13 @@ def consultar_tamaño_sala(lista_salas, lista_id_sala):
         print(f"Sala {i+1}: {len(lista_salas[i])} filas x {len(lista_salas[i][0])} columnas")
         print("-" * 30)
 
+def salas_libres(lista_sala_asignada, lista_id_sala):
+    """
+    Devuelve TRUE si hay salas sin pelicula asignada, FALSE si todas estan ocupadas.
+    ESTA FUNCION USA CONJUNTOS
+    """
+    return set(lista_id_sala) - set(lista_sala_asignada) != set()
+
 """
 =====================================================================
   USUARIOS Y SESION
@@ -350,7 +351,7 @@ def gestionar_cartelera(lista_peliculas, lista_salas, lista_id_sala, lista_sala_
     """
     gestion = funcion_gestionar_cartelera()
     while gestion != 3:
-        if gestion == 1 and len(lista_sala_asignada) != len(lista_id_sala):
+        if gestion == 1 and salas_libres(lista_sala_asignada , lista_id_sala):
             agrega_pelicula(lista_peliculas, lista_salas, lista_id_sala, lista_sala_asignada, lista_horarios)
         elif gestion == 2 and len(lista_peliculas) != 0:
             quitar_pelicula(lista_peliculas, lista_salas, lista_id_sala, lista_sala_asignada, mapa_reservas, lista_horarios)
@@ -364,7 +365,7 @@ def gestionar_cartelera(lista_peliculas, lista_salas, lista_id_sala, lista_sala_
 
 def mostrar_cartelera(lista_peliculas, lista_sala_asignada, lista_horarios, precio_entrada):
     """
-    Muestra las peliculas con su sala y el precio de entrada (igual para todas).
+    Muestra las peliculas con su sala y el precio de entrada.
     """
     print(f"\nPrecio de entrada: ${precio_entrada}")
     for i in range(len(lista_peliculas)):
@@ -406,12 +407,82 @@ def crear_sala_cine(lista_salas, lista_id_sala):
     consultar_tamaño_sala(lista_salas, lista_id_sala)
     salas.imprimir_sala(nueva_sala)
 
-
-def mostrar_estadisticas():
+def dividir_seguro(numerador, denominador):
     """
-    Pendiente de desarrollo.
+    Divide dos numeros. Si el denominador es 0 devuelve 0.0 en lugar de fallar
     """
-    print("Mostrar estadisticas")
+    try:
+        return numerador / denominador
+    except ZeroDivisionError:
+        return 0.0
+ 
+ 
+def entradas_de_sala(mapa_reservas, id_sala):
+    """
+    Cantidad de entradas vendidas para una sala (todos sus horarios).
+    """
+    return len(list(filter(lambda clave: clave[0] == id_sala, mapa_reservas)))
+ 
+ 
+def capacidad_pelicula(lista_salas, lista_id_sala, id_sala, horarios):
+    """
+    Cantidad total de butacas que se pueden vender para una pelicula:
+    filas x columnas de su sala x cantidad de horarios.
+    Si la sala no existe devuelve 0 y avisa.
+    """
+    try:
+        sala = lista_salas[lista_id_sala.index(id_sala)]
+    except ValueError:
+        print(f"Aviso: no se encontro la sala {id_sala}.")
+        return 0
+    return len(sala) * len(sala[0]) * len(horarios)
+ 
+ 
+def pelicula_mas_vendida(lista_peliculas, ventas):
+    """
+    Devuelve el nombre de la pelicula con mas entradas vendidas.
+    Si no hay peliculas en cartelera, max() lanza ValueError y se devuelve None.
+    """
+    try:
+        mejor_venta, nombre = max(zip(ventas, lista_peliculas))
+    except ValueError:
+        return None
+    return nombre if mejor_venta > 0 else None
+ 
+ 
+def mostrar_estadisticas(lista_peliculas, lista_salas, lista_id_sala, lista_sala_asignada, lista_horarios, mapa_reservas, precio_entrada):
+    """
+    Muestra estadisticas de ventas y ocupacion a partir de mapa_reservas.
+    """
+    total_entradas = len(mapa_reservas)
+    clientes = set(mapa_reservas.values())          # usuarios de las personas que compraron
+    ventas = list(map(lambda id_sala: entradas_de_sala(mapa_reservas, id_sala), lista_sala_asignada))
+ 
+    print("\n===== MODULO DE ESTADISTICAS =====")
+    if total_entradas == 0:
+        print("Todavia no hay ventas registradas.")
+    print(f"Entradas vendidas: {total_entradas}")
+    print(f"Recaudacion (a precio actual ${precio_entrada}): ${total_entradas * precio_entrada}")
+    print(f"Clientes distintos: {len(clientes)}")
+    print(f"Promedio de entradas por cliente: {dividir_seguro(total_entradas, len(clientes)):.2f}")
+ 
+    print("\nOcupacion por pelicula:")
+    peliculas_con_ventas = set()
+    for i in range(len(lista_peliculas)):
+        capacidad = capacidad_pelicula(lista_salas, lista_id_sala, lista_sala_asignada[i], lista_horarios[i])
+        porcentaje = dividir_seguro(ventas[i], capacidad) * 100
+        print(f"- {lista_peliculas[i]}: {ventas[i]} entradas de {capacidad} butacas ({porcentaje:.1f}%)")
+        if ventas[i] > 0:
+            peliculas_con_ventas.add(lista_peliculas[i])
+ 
+    mas_vendida = pelicula_mas_vendida(lista_peliculas, ventas)
+    if mas_vendida is None:
+        print("\nNo hay una pelicula mas vendida todavia.")
+    else:
+        print(f"\nPelicula mas vendida: {mas_vendida}")
+    sin_ventas = set(lista_peliculas) - peliculas_con_ventas
+    if len(sin_ventas) > 0 and total_entradas > 0:
+        print("Peliculas sin ventas:", ", ".join(sorted(sin_ventas)))
 
 
 def sesion_admin(lista_peliculas, lista_salas, lista_id_sala, lista_sala_asignada, lista_horarios, mapa_reservas, precio_entrada):
@@ -428,7 +499,7 @@ def sesion_admin(lista_peliculas, lista_salas, lista_id_sala, lista_sala_asignad
         elif funciones_admin == 3:
             crear_sala_cine(lista_salas, lista_id_sala)
         else:
-            mostrar_estadisticas()
+            mostrar_estadisticas(lista_peliculas, lista_salas, lista_id_sala, lista_sala_asignada, lista_horarios, mapa_reservas, precio_entrada)
         funciones_admin = imprimir_funciones_admin()
     return precio_entrada
 
@@ -562,12 +633,12 @@ def main():
     lista_id_sala = [1111]                          # int: id de la sala, mismo orden que lista_salas
     lista_horarios = [["10:00", "14:00", "18:00"]]  # string: horarios de cada pelicula, mismo orden que lista_peliculas
     lista_sala_asignada = [1111]                    # int: id de la sala asignada a cada pelicula, mismo orden que lista_peliculas
-    lista_usuarios = []                             # string: nombre de cada usuario registrado, mismo orden que lista_id_usuarios
-    lista_id_usuarios = []                          # int: id unico de cada usuario registrado, mismo orden que lista_usuarios
-    lista_contraseñas = []                          # string: contraseña de cada usuario registrado, mismo orden que lista_usuarios
-    lista_telefonos = []                            # int: numero de telefono de cada usuario registrado, mismo orden que lista_usuarios
+    lista_usuarios = ["pepe"]                       # string: nombre de cada usuario registrado, mismo orden que lista_id_usuarios
+    lista_id_usuarios = [1111]                      # int: id unico de cada usuario registrado, mismo orden que lista_usuarios
+    lista_contraseñas = ["1234"]                    # string: contraseña de cada usuario registrado, mismo orden que lista_usuarios
+    lista_telefonos = ["12-1234-1234"]              # string: numero de telefono de cada usuario registrado, mismo orden que lista_usuarios
 
-    mapa_reservas = {}                              # dict: {(id_sala, fila, columna): usuario, ...} para guardar las reservas de butacas
+    mapa_reservas = {(1111, "10:00", 1, 1): "pepe"} # dict: {(id_sala, horario, fila, columna): usuario} para guardar las reservas de butacas
     contraseña_admin = None                         # string: contraseña del administrador, None si no se creo aun
 
     funciones_principal = menu_principal()
