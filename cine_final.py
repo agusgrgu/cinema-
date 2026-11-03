@@ -1,5 +1,7 @@
 import re
 from functools import reduce
+import json
+import os
 
 def crear_sala(filas, columnas):
     sala = [["L" for j in range(columnas)] for i in range(filas)]
@@ -118,13 +120,14 @@ def imprimir_funciones_admin():
     print("""
     Funciones disponibles:
     1 - Gestionar cartelera
-    2 - Cambiar precio de entradas
+    2 - cambiar caracteristicas de las peliculas
     3 - Crear sala de cine
     4 - ventas
-    5 - salir
+    5 - Comprobar informacion clientes
+    6 - Salir
     """)
     eleccion = verificar_entero()
-    while eleccion < 1 or eleccion > 5:
+    while eleccion < 1 or eleccion > 6:
         print("Opción inválida. Intente nuevamente.")
         eleccion = verificar_entero()
     return eleccion
@@ -165,13 +168,10 @@ def verificar_entero():
 """
 # LISTAS DE PELICULAS
 
-nombres_peliculas = [
-    "avengers",
-    "star wars II",
-    "titanic"
-]
+nombres_peliculas = list(peliculas.keys())
+entradaprecio = list(peliculas.values())
 
-horarios_peliculas = 
+horarios_peliculas = list(horarios_peliculas.values())
 
 # LISTAS DE RESERVAS
 
@@ -183,7 +183,10 @@ asientos_reservas = []
 
 
 def elegir_pelicula():
+    nombres_peliculas = list(peliculas.keys())
+    entradaprecio = list(peliculas.values())
 
+    horarios_peliculas = list(horarios_peliculas.values())
     print("===== PELICULAS DISPONIBLES =====")
 
     i = 0
@@ -221,7 +224,7 @@ def elegir_pelicula():
 
 
 def guardar_reserva(cliente, pelicula, horario, cantidad, asientos):
-
+    
     clientes_reservas.append(cliente)
     peliculas_reservas.append(pelicula)
     horarios_reservas.append(horario)
@@ -232,7 +235,10 @@ def guardar_reserva(cliente, pelicula, horario, cantidad, asientos):
 
 
 def realizar_reserva():
+    nombres_peliculas = list(peliculas.keys())
+    entradaprecio = list(peliculas.values())
 
+    horarios_peliculas = list(horarios_peliculas.values())
     print("===== REALIZAR RESERVA =====")
 
     cliente = input("Ingresá el nombre del cliente: ")
@@ -320,38 +326,46 @@ def main():
     lista_contraseñas = []
     lista_id_usuario = []
     contraseña_admin = "admin"
-    numeros_telefonicos = []
+    numeros_telefonicos = set()
     
     funciones_principal = menu_principal()
     while funciones_principal != 2:
         if funciones_principal == 1:
             usuario = input("Ingrese su nombre de usuario: ")
             usuario_valido = re.match(r'^[a-zA-Z0-9]+$', usuario)
-            if not usuario_valido:
+            if usuario_valido:
+                lista_usuarios.append(usuario)
+            elif not usuario_valido:
                 while not usuario_valido:
                     print("Error: El nombre de usuario solo puede contener letras y números.")
                     usuario = input("Ingrese su nombre de usuario: ")
                     usuario_valido = re.match(r'^[a-zA-Z0-9]+$', usuario)
-                
+                    if usuario_valido:
+                        lista_usuarios.append(usuario)
+            print(lista_usuarios)    
             contraseña = input("Cree una contraseña: ")
             numero_telefonico = input("Ingrese su número de teléfono para ser comunicado en caso de que se necesite ")
             patron_telefono = "[0-9]{2}-[0-9]{4}-[0-9]{4}"
             numero= re.findall(patron_telefono, numero_telefonico)
+            numero_valido= numero 
             if numero in numeros_telefonicos:
                 print("El número de teléfono ya está registrado.")
-            elif numero not in numeros_telefonicos and numero:
-                numeros_telefonicos.append(numero_telefonico)
+            elif numero not in numeros_telefonicos:
+                numeros_telefonicos.add(numero)
                 print("Número de teléfono válido y agregado a la lista.")
-                print(numeros_telefonicos)#borrar tras pruebas
             else:
                 while not numero:
                     print("Error: El número de teléfono debe tener el formato 00-0000-0000.")
                     numero_telefonico_corregido = input("Ingrese su número de teléfono para ser comunicado en caso de que se necesite ")
                     numero= re.findall(patron_telefono, numero_telefonico_corregido)
-                numeros_telefonicos.append(numero)
+                numeros_telefonicos.add (numero_valido)
                 print("Número de teléfono válido y agregado a la lista.")
-                print(numeros_telefonicos)#borrar tras pruebas
-           
+            if  "telefonos.txt" in locals():
+                with open("telefonos.txt", "a", encoding="utf-8") as archivo:
+                     archivo.append(numero_telefonico + "\n")
+            else:
+                archivo = open("telefonos.txt", "w", encoding="utf-8")
+                archivo.write(numero_telefonico + "\n")
             if usuario == "admin" and contraseña == contraseña_admin:
                 """
                 ---------------------------- ↓↓↓ EMPIEZA BLOQUE DE FUNCIONES DE ADMIN ↓↓↓ ----------------------------------------------------
@@ -365,7 +379,7 @@ def main():
                 print("\nBienvenido al menu de administradores")
                 funciones_admin = imprimir_funciones_admin()
 
-                while funciones_admin != 5:
+                while funciones_admin != 6:
 
                   if funciones_admin == 1:
                       # GESTIONAR CARTELERA
@@ -380,17 +394,22 @@ def main():
                           agregopeli=agrega_pelicula(cantidad)
                       elif gestionar_cartelera == 2:
                           print("Quitar pelicula")
-                          nombre=input("que pelicula desea eliminar?")
-                          pelicula_fuera(nombre)
+                          try:
+                            nombre=input("que pelicula desea eliminar?")
+                          except "ValueError" and "TypeError":
+                            print("Error al ingresar el nombre de la película.")
+                          else:
+                            pelicula_fuera(nombre)
                       else:
                           print("Opción inválida. Intente nuevamente.")
 
                   elif funciones_admin == 2:
-                      # CAMBIAR PRECIO DE ENTRADAS
-                      print("cambiar precio de entrada")
-                      print(f"Precio actual {precio_entrada}")
-                      precio_entrada = verificar_entero()
-                      print(f"Se actualizo el precio a {precio_entrada}")
+                      # CAMBIAR pelicula
+                      pelicula = input("Ingrese el nombre de la película que desea modificar: ")
+                      if pelicula not in peliculas:
+                          print("La película no se encuentra en la cartelera.")
+                      modifica_la_pelicula(pelicula)
+                      
 
                   elif funciones_admin == 3:
                       # CREAR SALA DE CINE
@@ -399,6 +418,15 @@ def main():
                       columnas= input("Ingrese la cantidad de columnas: ")
                       crear_sala(filas, columnas)
 
+                  elif funciones_admin == 4:
+                      # VENTAS
+                      ventas()
+                  elif funciones_admin == 5:
+                      #comprobando informacion de clientes
+                      print(lista_usuarios, lista_contraseñas, lista_id_usuario, numeros_telefonicos)
+                  elif funciones_admin == 6:
+                      print("Saliendo del sistema...")
+                      break
                   else:
                       print("Opción inválida. Intente nuevamente.")
                   funciones_admin = imprimir_funciones_admin()

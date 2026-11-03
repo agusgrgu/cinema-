@@ -1,4 +1,4 @@
-
+import re
 def verificar_entero():
     """
     Verifica que el valor ingresado sea un número entero.
@@ -12,71 +12,56 @@ def verificar_entero():
     return int(entrada)
 # Modulo cartelera
 peliculas= {"titanic": 650, "star wars II": 420, "avengers": 135}
+horarios_peliculas = {"titanic": ["14:00", "18:00", "22:00"], "star wars II": ["15:00", "19:00", "21:00"], "avengers": ["16:00", "20:00", "23:00"]}
 def agrega_pelicula(cantidad):
     #agrega la pelicula y su precio
     for i in range(cantidad):
         nombre = input("Ingrese el nombre de la película: ")
         print("¿cuanto costara cada entrada?")
-        while True:
-            try:
-                precio = int(input("Ingrese el precio de la entrada: "))
-                if precio > 0:
-                    break
-                print("Error: El precio debe ser mayor que cero.")
-            except ValueError:
-                print("Error: Debe ingresar un número entero para el precio.")
-        if nombre in peliculas:
-            print("la pelicula ya se encuentra en cartelera")
-        else:
-            peliculas[nombre] = precio
+        precio = verificar_entero()
+        peliculas[nombre] = precio
     print("Películas agregadas exitosamente.")
-    #verificada
 
 def mostrar_cartelera():
     #muestra las entradas y sus precios junto con las entradas disponibles
     for nombre, precio in peliculas.items():
         print("Película: ",  nombre, "Precio de entrada: ", precio)
         print("")
-def modificar_pelicula(pelicula):
-    #modifica precio o nombre de la pelicula
-    if pelicula in peliculas:
 
-        opcioninv= True
-        while opcioninv == True:
-            print("¿Qué desea modificar?")
-            print("1. Nombre de la película")
-            print("2. Precio de la entrada")
-            opcion = verificar_entero()
-            if opcion == 1:
-                nuevo_nombre = input("Ingrese el nuevo nombre de la película: ")
-                peliculas[nuevo_nombre] = peliculas.pop(pelicula)
-                print("Nombre de la película modificado exitosamente.")
-                opcioninv= False
-            elif opcion == 2:
-                print("Ingrese el nuevo precio de la entrada: ")
-                print("¿cuanto costara cada entrada?")
-                while True:
-                    try:
-                        nuevo_precio = int(input("Ingrese el precio de la entrada: "))
-                        if nuevo_precio > 0:
-                              break
-                        print("Error: El precio debe ser mayor que cero.")
-                    except ValueError:
-                        print("Error: Debe ingresar un número entero para el precio.")
-                peliculas[pelicula] = nuevo_precio
-                print("Precio de la entrada modificado exitosamente.")
-                opcioninv= False
+def modifica_la_pelicula(pelicula):
+    #modifica nombre y precio de la pelicula
+    if pelicula in peliculas:
+        modificar = input("que desea modificar? nombre, precio o horario")
+        while modificar != "precio" and modificar != "nombre" and modificar != "horario":
+            print("opcion invalida")
+            modificar = input("que desea modificar? nombre, precio o horario")
+        if modificar == "precio":
+            print ("ingrese el precio de la pelicula")
+            precioact= verificar_entero ()
+            peliculas[pelicula] = precioact
+        elif modificar == "nombre":
+            nombreact= input("ingrese el nombre de la pelicula")
+            peliculas[nombreact] = peliculas.pop(pelicula)
+        elif modificar == "horario":
+            print("de que pelicula desea modificar los horarios?")
+            horarios = input("Ingrese los nuevos horarios separados por comas (ejemplo: 14:00,18:00,22:00): ").split(",")
+            patron= "[0-2]{1}[0-4]{1}:[0-6]{1}[0-9]{1}"
+            if all(re.match(patron, horario) for horario in horarios):
+                horarios_peliculas[pelicula] = horarios
             else:
-                print("Opción inválida, inice de nuevo e ingrse 1 o 2.")
-                opcioninv= True
-        
-    else:
-        print("La película no se encuentra en la cartelera.")
-        
-def eliminar_pelicula(pelicula):
+                print("Error: Los horarios ingresados no tienen el formato correcto.")
+        else:
+            print("invalido")
+    print(horarios_peliculas)
+
+
+def pelicula_fuera(pelicula):
+    #elimina la pelicula de la cartelera
     if pelicula in peliculas:
         del peliculas[pelicula]
         print("Película eliminada exitosamente.")
     else:
         print("La película no se encuentra en la cartelera.")
-print(peliculas.values())
+
+
+modifica_la_pelicula("titanic")
