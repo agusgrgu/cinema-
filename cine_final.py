@@ -347,39 +347,51 @@ def main():
             numero_telefonico = input("Ingrese su número de teléfono para ser comunicado en caso de que se necesite ")
             patron_telefono = "[0-9]{2}-[0-9]{4}-[0-9]{4}"
             numero= re.findall(patron_telefono, numero_telefonico)
-            numero_valido= numero 
-            if numero in numeros_telefonicos:
-                print("El número de teléfono ya está registrado.")
-            elif numero not in numeros_telefonicos:
-                numeros_telefonicos.add(numero)
+            if numero and numero_telefonico not in numeros_telefonicos:
+                numeros_telefonicos.add(numero_telefonico)
                 print("Número de teléfono válido y agregado a la lista.")
+            elif numero_telefonico in numeros_telefonicos:
+                print("Error: El número de teléfono ya ha sido ingresado previamente.")
+                print("ingrese un número de teléfono diferente.")
+                while not numero:
+                                    print("Error: El número de teléfono no tiene el formato correcto. Debe ser XX-XXXX-XXXX.")
+                                    numero_telefonico = input("Ingrese su número de teléfono para ser comunicado en caso de que se necesite ")
+                                    numero = re.findall(patron_telefono, numero_telefonico)
+                                    if numero and numero_telefonico not in numeros_telefonicos:
+                                        numeros_telefonicos.add(numero_telefonico)
+                                        print("Número de teléfono válido y agregado a la lista.")
             else:
                 while not numero:
-                    print("Error: El número de teléfono debe tener el formato 00-0000-0000.")
-                    numero_telefonico_corregido = input("Ingrese su número de teléfono para ser comunicado en caso de que se necesite ")
-                    numero= re.findall(patron_telefono, numero_telefonico_corregido)
-                numeros_telefonicos.add (numero_valido)
-                print("Número de teléfono válido y agregado a la lista.")
-            if  "telefonos.txt" in locals():
-                with open("telefonos.txt", "a", encoding="utf-8") as archivo:
-                     archivo.append(numero_telefonico + "\n")
-            else:
-                archivo = open("telefonos.txt", "w", encoding="utf-8")
-                archivo.write(numero_telefonico + "\n")
+                    print("Error: El número de teléfono no tiene el formato correcto. Debe ser XX-XXXX-XXXX.")
+                    numero_telefonico = input("Ingrese su número de teléfono para ser comunicado en caso de que se necesite ")
+                    numero = re.findall(patron_telefono, numero_telefonico)
+                    if numero and numero_telefonico not in numeros_telefonicos:
+                        numeros_telefonicos.add(numero_telefonico)
+                        print("Número de teléfono válido y agregado a la lista.")
             if usuario == "admin" and contraseña == contraseña_admin:
                 """
                 ---------------------------- ↓↓↓ EMPIEZA BLOQUE DE FUNCIONES DE ADMIN ↓↓↓ ----------------------------------------------------
                 """
-                while contraseña_admin == "admin":
+                try:
+                    open("contraseña_admin.txt", "r")
+                except FileNotFoundError:
                     contraseña_admin = input("Cree una contraseña para administradores: ")
                     contraseña_valida= filter(lambda x: x.isalnum(), contraseña_admin)
                     tuplecontra= tuple(contraseña_valida)
                     del contraseña_admin
                     del contraseña_valida
+                    with open("contraseña_admin.txt", "w", encoding="utf-8") as archivo:
+                        archivo.write("".join(tuplecontra))
+                        print("su contraseña guardada es: ", "".join(tuplecontra))
+                print("Ingrese la contraseña de administrador: ")
+                contraseña_ingresada = input()
+                if contraseña_ingresada != open("contraseña_admin.txt", "r").read():
+                    print("Contraseña incorrecta. Acceso denegado.")
+                    continue
                 print("\nBienvenido al menu de administradores")
                 funciones_admin = imprimir_funciones_admin()
 
-                while funciones_admin != 6:
+                while funciones_admin != 5:
 
                   if funciones_admin == 1:
                       # GESTIONAR CARTELERA
