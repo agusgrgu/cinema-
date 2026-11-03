@@ -1,5 +1,6 @@
 import re
 import random
+from shlex import join
 import salas
 
 """
@@ -214,6 +215,11 @@ def imprimir_lista_enumerada(lista):
     for i in range(len(lista)):
         print(f"{i+1}. {lista[i]}")
 
+def salas_ocupadas(cartelera):
+    """
+    Devuelve un conjunto con los ID de las salas que tienen una pelicula asignada.
+    """
+    return {datos["sala"] for datos in cartelera.values()}
 
 def consultar_tamaño_sala(lista_salas, lista_id_sala):
     """
@@ -226,12 +232,21 @@ def consultar_tamaño_sala(lista_salas, lista_id_sala):
         print(f"Sala {i+1}: {len(lista_salas[i])} filas x {len(lista_salas[i][0])} columnas")
         print("-" * 30)
 
-def salas_libres(lista_sala_asignada, lista_id_sala):
+def salas_libres(cartelera, lista_id_sala):
     """
     Devuelve TRUE si hay salas sin pelicula asignada, FALSE si todas estan ocupadas.
     ESTA FUNCION USA CONJUNTOS
     """
-    return set(lista_id_sala) - set(lista_sala_asignada) != set()
+    return set(lista_id_sala) - salas_ocupadas(cartelera) != set()
+
+def pelicula_de_sala(cartelera, id_sala):
+    """
+    Devuelve el nombre de la  pelicula asignada a una sala, o None si no hay ninguna.
+    """
+    for nombre, datos in cartelera.items():
+        if datos["sala"] == id_sala:
+            return nombre
+    return None
 
 """
 =====================================================================
@@ -290,52 +305,47 @@ def iniciar_sesion(lista_usuarios, lista_contraseñas, contraseña_admin):
 =====================================================================
 """
 
-def elegir_sala_libre(lista_salas, lista_id_sala, lista_sala_asignada):
+def elegir_sala_libre(lista_salas, lista_id_sala, cartelera):
     """
     Muestra las salas y devuelve el ID de una sala sin pelicula asignada.
     """
     consultar_tamaño_sala(lista_salas, lista_id_sala)
     opcion = pedir_opcion(1, len(lista_id_sala), "Ingrese el número de sala: ")
-    while lista_id_sala[opcion - 1] in lista_sala_asignada:
+    while lista_id_sala[opcion - 1] in salas_ocupadas(cartelera):
         print("\nLa sala ya tiene asignada una pelicula.")
         consultar_tamaño_sala(lista_salas, lista_id_sala)
         opcion = pedir_opcion(1, len(lista_id_sala), "Ingrese el número de sala: ")
     return lista_id_sala[opcion - 1]
 
 
-def agrega_pelicula(lista_peliculas, lista_salas, lista_id_sala, lista_sala_asignada, lista_horarios):
+def agrega_pelicula(cartelera, lista_salas, lista_id_sala):
     """
     Agrega una pelicula a la cartelera.
-    Y le asigna una sala de cine.
+    Y le asigna una sala de cine y horarios.
 
     Esta función se puede acceder desde el menú de administrador.
     """
     nombre_pelicula = pedir_texto("\nIngrese el nombre de la pelicula a agregar: ")
-    if nombre_pelicula in lista_peliculas:
+    if nombre_pelicula in cartelera:
         print("Esa pelicula ya esta en la cartelera.")
         return
-    sala_asignada = elegir_sala_libre(lista_salas, lista_id_sala, lista_sala_asignada)
+    sala_asignada = elegir_sala_libre(lista_salas, lista_id_sala, cartelera)
     horarios = pedir_horarios()
-    lista_peliculas.append(nombre_pelicula)
-    lista_sala_asignada.append(sala_asignada)
-    lista_horarios.append(horarios)
+    cartelera[nombre_pelicula] = {"sala": sala_asignada, "horarios": horarios}
     print(f"\nPelicula '{nombre_pelicula}' agregada en la sala {sala_asignada}.")
 
 
-def quitar_pelicula(lista_peliculas, lista_salas, lista_id_sala, lista_sala_asignada, mapa_reservas, lista_horarios):
+def quitar_pelicula(cartelera, mapa_reservas):
     """
     Quita una pelicula de la cartelera, libera su sala y cancela sus reservas.
     """
-    imprimir_lista_enumerada(lista_peliculas)
+    imprimir_lista_enumerada(list(cartelera))
     pelicula_a_eliminar = input("Ingrese el nombre de la pelicula a quitar: ").strip()
-    if pelicula_a_eliminar not in lista_peliculas:
+    if pelicula_a_eliminar not in cartelera:
         print("La pelicula no se encuentra en la cartelera.")
         return
 
-    posicion = lista_peliculas.index(pelicula_a_eliminar)
-    id_sala = lista_sala_asignada.pop(posicion)
-    lista_horarios.pop(posicion)
-    lista_peliculas.pop(posicion)
+    id_sala = cartelera.pop(pelicula_a_eliminar)["sala"]
 
     # Las reservas de la pelicula se cancelan y la sala vuelve a quedar libre
     for clave in list(filter(lambda r: r[0] == id_sala, mapa_reservas)):
@@ -343,7 +353,7 @@ def quitar_pelicula(lista_peliculas, lista_salas, lista_id_sala, lista_sala_asig
     print(f"\nPelicula '{pelicula_a_eliminar}' eliminada de la cartelera.")
 
 
-def gestionar_cartelera(lista_peliculas, lista_salas, lista_id_sala, lista_sala_asignada, lista_horarios ,mapa_reservas):
+def gestionar_cartelera(cartelera, lista_salas, lista_id_sala, mapa_reservas):
     """
     Gestiona la cartelera del cine.
 
@@ -351,10 +361,10 @@ def gestionar_cartelera(lista_peliculas, lista_salas, lista_id_sala, lista_sala_
     """
     gestion = funcion_gestionar_cartelera()
     while gestion != 3:
-        if gestion == 1 and salas_libres(lista_sala_asignada , lista_id_sala):
-            agrega_pelicula(lista_peliculas, lista_salas, lista_id_sala, lista_sala_asignada, lista_horarios)
-        elif gestion == 2 and len(lista_peliculas) != 0:
-            quitar_pelicula(lista_peliculas, lista_salas, lista_id_sala, lista_sala_asignada, mapa_reservas, lista_horarios)
+        if gestion == 1 and salas_libres(cartelera, lista_id_sala):
+            agrega_pelicula(cartelera, lista_salas, lista_id_sala)
+        elif gestion == 2 and len(cartelera) != 0:
+            quitar_pelicula(cartelera, mapa_reservas)
         else:
             if gestion == 1:
                 print("\nTodas las salas estan ocupadas.")
@@ -363,13 +373,13 @@ def gestionar_cartelera(lista_peliculas, lista_salas, lista_id_sala, lista_sala_
         gestion = funcion_gestionar_cartelera()
 
 
-def mostrar_cartelera(lista_peliculas, lista_sala_asignada, lista_horarios, precio_entrada):
+def mostrar_cartelera(cartelera, precio_entrada):
     """
     Muestra las peliculas con su sala y el precio de entrada.
     """
     print(f"\nPrecio de entrada: ${precio_entrada}")
-    for i in range(len(lista_peliculas)):
-        print("Película: ", lista_peliculas[i], "--- Sala ID --", lista_sala_asignada[i], "--- Horarios --", ", ".join(lista_horarios[i]))
+    for nombre, datos in cartelera.items():
+        print("Pelicula:", nombre, "--- Sala ID:", datos["sala"], "--- Horarios ---", ",".join(datos["horarios"]))
 
 """
 =====================================================================
@@ -436,27 +446,36 @@ def capacidad_pelicula(lista_salas, lista_id_sala, id_sala, horarios):
         print(f"Aviso: no se encontro la sala {id_sala}.")
         return 0
     return len(sala) * len(sala[0]) * len(horarios)
+
  
+def ventas_por_pelicula(cartelera, mapa_reservas):
+    """
+    Devuelve un diccionario {nombre_pelicula: cantidad_entradas_vendidas}
+    """
+    ventas = {}
+    for nombre, datos in cartelera.items():
+        ventas[nombre] = entradas_de_sala(mapa_reservas, datos["sala"])
+    return ventas
  
-def pelicula_mas_vendida(lista_peliculas, ventas):
+def pelicula_mas_vendida(ventas):
     """
     Devuelve el nombre de la pelicula con mas entradas vendidas.
     Si no hay peliculas en cartelera, max() lanza ValueError y se devuelve None.
     """
     try:
-        mejor_venta, nombre = max(zip(ventas, lista_peliculas))
+        nombre = max(ventas, key=ventas.get)
     except ValueError:
         return None
-    return nombre if mejor_venta > 0 else None
+    return nombre if ventas[nombre] > 0 else None
  
  
-def mostrar_estadisticas(lista_peliculas, lista_salas, lista_id_sala, lista_sala_asignada, lista_horarios, mapa_reservas, precio_entrada):
+def mostrar_estadisticas(cartelera, lista_salas, lista_id_sala, mapa_reservas, precio_entrada):
     """
     Muestra estadisticas de ventas y ocupacion a partir de mapa_reservas.
     """
     total_entradas = len(mapa_reservas)
     clientes = set(mapa_reservas.values())          # usuarios de las personas que compraron
-    ventas = list(map(lambda id_sala: entradas_de_sala(mapa_reservas, id_sala), lista_sala_asignada))
+    ventas = ventas_por_pelicula(cartelera, mapa_reservas)
  
     print("\n===== MODULO DE ESTADISTICAS =====")
     if total_entradas == 0:
@@ -468,24 +487,23 @@ def mostrar_estadisticas(lista_peliculas, lista_salas, lista_id_sala, lista_sala
  
     print("\nOcupacion por pelicula:")
     peliculas_con_ventas = set()
-    for i in range(len(lista_peliculas)):
-        capacidad = capacidad_pelicula(lista_salas, lista_id_sala, lista_sala_asignada[i], lista_horarios[i])
-        porcentaje = dividir_seguro(ventas[i], capacidad) * 100
-        print(f"- {lista_peliculas[i]}: {ventas[i]} entradas de {capacidad} butacas ({porcentaje:.1f}%)")
-        if ventas[i] > 0:
-            peliculas_con_ventas.add(lista_peliculas[i])
- 
-    mas_vendida = pelicula_mas_vendida(lista_peliculas, ventas)
+    for nombre , datos in cartelera.items():
+        capacidad = capacidad_pelicula(lista_salas, lista_id_sala, datos["sala"], datos["horarios"])
+        porcentaje = dividir_seguro(ventas[nombre], capacidad) * 100
+        print(f"- {nombre}: {ventas[nombre]} entradas de {capacidad} ({porcentaje:.2f}%)")
+        if ventas[nombre] > 0:
+            peliculas_con_ventas.add(nombre)
+    mas_vendida = pelicula_mas_vendida(ventas)
     if mas_vendida is None:
         print("\nNo hay una pelicula mas vendida todavia.")
     else:
         print(f"\nPelicula mas vendida: {mas_vendida}")
-    sin_ventas = set(lista_peliculas) - peliculas_con_ventas
+    sin_ventas = set(cartelera) - peliculas_con_ventas
     if len(sin_ventas) > 0 and total_entradas > 0:
         print("Peliculas sin ventas:", ", ".join(sorted(sin_ventas)))
 
 
-def sesion_admin(lista_peliculas, lista_salas, lista_id_sala, lista_sala_asignada, lista_horarios, mapa_reservas, precio_entrada):
+def sesion_admin(cartelera, lista_salas, lista_id_sala, mapa_reservas, precio_entrada):
     """
     Menu del administrador. Devuelve el precio de entrada (por si fue modificado).
     """
@@ -493,13 +511,13 @@ def sesion_admin(lista_peliculas, lista_salas, lista_id_sala, lista_sala_asignad
     funciones_admin = imprimir_funciones_admin()
     while funciones_admin != 5:
         if funciones_admin == 1:
-            gestionar_cartelera(lista_peliculas, lista_salas, lista_id_sala, lista_sala_asignada, lista_horarios, mapa_reservas)
+            gestionar_cartelera(cartelera, lista_salas, lista_id_sala, mapa_reservas)
         elif funciones_admin == 2:
             precio_entrada = cambiar_precio(precio_entrada)
         elif funciones_admin == 3:
             crear_sala_cine(lista_salas, lista_id_sala)
         else:
-            mostrar_estadisticas(lista_peliculas, lista_salas, lista_id_sala, lista_sala_asignada, lista_horarios, mapa_reservas, precio_entrada)
+            mostrar_estadisticas(cartelera, lista_salas, lista_id_sala, mapa_reservas, precio_entrada)
         funciones_admin = imprimir_funciones_admin()
     return precio_entrada
 
@@ -509,13 +527,14 @@ def sesion_admin(lista_peliculas, lista_salas, lista_id_sala, lista_sala_asignad
 =====================================================================
 """
 
-def elegir_pelicula(lista_peliculas):
+def elegir_pelicula(cartelera):
     """
     Muestra las peliculas y devuelve la posicion (desde 0) de la elegida.
     """
-    imprimir_lista_enumerada(lista_peliculas)
-    indice = pedir_opcion(1, len(lista_peliculas), f"Ingrese un numero 1-{len(lista_peliculas)}: ")
-    return indice - 1
+    nombres = list(cartelera)
+    imprimir_lista_enumerada(nombres)
+    indice = pedir_opcion(1, len(nombres), f"Ingrese un numero 1-{len(nombres)}: ")
+    return nombres[indice - 1]
 
 def elegir_horario(horarios):
     """
@@ -565,21 +584,19 @@ def guardar_reserva(canti_entradas, sala, usuario, id_sala, horario):
     return reservas
 
 
-def comprar_entradas(lista_peliculas, lista_salas, lista_id_sala, lista_sala_asignada,
-                     lista_horarios, precio_entrada, usuario, mapa_reservas):
+def comprar_entradas(cartelera, lista_salas, lista_id_sala, precio_entrada, usuario, mapa_reservas):
     """
     Permite elegir pelicula, horario, cantidad y butacas. Guarda las reservas en mapa_reservas.
     """
-    posicion = elegir_pelicula(lista_peliculas)
-    id_sala = lista_sala_asignada[posicion]
-    horario = elegir_horario(lista_horarios[posicion])
+    nombre = elegir_pelicula(cartelera)
+    id_sala = cartelera[nombre]["sala"]
+    horario = elegir_horario(cartelera[nombre]["horarios"])
     plantilla = lista_salas[lista_id_sala.index(id_sala)]
     sala = armar_sala_horario(plantilla, id_sala, horario, mapa_reservas)
-    libres, _ = salas.contar_butacas(sala)
+    libres, ocupadas = salas.contar_butacas(sala)
     if libres == 0:
-        print("\nLa funcion esta agotada.")
+        print("\nLo sentimos, no hay butacas disponibles para esta funcion.")
         return
- 
     print(f"\nPrecio por entrada $ {precio_entrada} - Butacas libres: {libres}")
     cantidad = pedir_opcion(1, libres, f"Ingrese la cantidad de entradas a comprar (1-{libres}): ")
     reservas = dict(guardar_reserva(cantidad, sala, usuario, id_sala, horario))
@@ -587,7 +604,7 @@ def comprar_entradas(lista_peliculas, lista_salas, lista_id_sala, lista_sala_asi
     print(f"\nCompra exitosa. Total a pagar: $ {precio_entrada * cantidad}")
 
 
-def consultar_reservas(lista_peliculas, lista_sala_asignada, mapa_reservas, usuario):
+def consultar_reservas(cartelera, mapa_reservas, usuario):
     """
     Muestra solo las reservas del usuario (se filtran por usuario).
     """
@@ -597,11 +614,11 @@ def consultar_reservas(lista_peliculas, lista_sala_asignada, mapa_reservas, usua
         return
     print(f"\nReservas de {usuario}:")
     for (id_sala, horario, fila, columna), _ in propias:
-        pelicula = lista_peliculas[lista_sala_asignada.index(id_sala)]
+        pelicula = pelicula_de_sala(cartelera, id_sala)
         print(f"- {pelicula} | Sala ID {id_sala} | {horario} | Fila {fila}, Columna {columna}")
 
 
-def sesion_usuario(lista_peliculas, lista_salas, lista_id_sala, lista_sala_asignada, lista_horarios, mapa_reservas, precio_entrada, usuario):
+def sesion_usuario(cartelera, lista_salas, lista_id_sala, mapa_reservas, precio_entrada, usuario):
     """
     Menu del usuario registrado.
     """
@@ -609,14 +626,13 @@ def sesion_usuario(lista_peliculas, lista_salas, lista_id_sala, lista_sala_asign
     funciones_usuario = imprimir_funciones_usuario()
     while funciones_usuario != 4:
         if funciones_usuario == 3:
-            consultar_reservas(lista_peliculas, lista_sala_asignada, mapa_reservas, usuario)
-        elif len(lista_peliculas) == 0:
+            consultar_reservas(cartelera, mapa_reservas, usuario)
+        elif len(cartelera) == 0:
             print("\nNo hay peliculas en cartelera.")
         elif funciones_usuario == 1:
-            mostrar_cartelera(lista_peliculas, lista_sala_asignada, lista_horarios, precio_entrada)
+            mostrar_cartelera(cartelera, precio_entrada)
         else:
-            comprar_entradas(lista_peliculas, lista_salas, lista_id_sala, lista_sala_asignada,
-                             lista_horarios, precio_entrada, usuario, mapa_reservas)
+            comprar_entradas(cartelera, lista_salas, lista_id_sala, precio_entrada, usuario, mapa_reservas)
         funciones_usuario = imprimir_funciones_usuario()
 
 
@@ -628,11 +644,9 @@ def sesion_usuario(lista_peliculas, lista_salas, lista_id_sala, lista_sala_asign
 def main():
                                                     # ↓↓↓ Tipo de dato que ocupa ↓↓↓
     precio_entrada = 10000                          # int: precio de entrada (igual para todas las peliculas)
-    lista_peliculas = ["Pocoyo"]                    # string: nombre de cada pelicula en cartelera, mismo orden que lista_sala_asignada
     lista_salas = [salas.crear_sala(3, 3)]          # matriz: "L" = libre, "O" = ocupada, mismo orden que lista_id_sala
     lista_id_sala = [1111]                          # int: id de la sala, mismo orden que lista_salas
-    lista_horarios = [["10:00", "14:00", "18:00"]]  # string: horarios de cada pelicula, mismo orden que lista_peliculas
-    lista_sala_asignada = [1111]                    # int: id de la sala asignada a cada pelicula, mismo orden que lista_peliculas
+    cartelera = {"Pocoyo": {"sala": 1111 , "horarios": ["10:00", "12:00"]}} # dict: {nombre_pelicula: {"sala": id_sala, "horarios": [horario1, horario2, ...]}}
     lista_usuarios = ["pepe"]                       # string: nombre de cada usuario registrado, mismo orden que lista_id_usuarios
     lista_id_usuarios = [1111]                      # int: id unico de cada usuario registrado, mismo orden que lista_usuarios
     lista_contraseñas = ["1234"]                    # string: contraseña de cada usuario registrado, mismo orden que lista_usuarios
@@ -649,9 +663,9 @@ def main():
             usuario, contraseña_admin = iniciar_sesion(lista_usuarios, lista_contraseñas, contraseña_admin)
 
         if usuario == "admin":
-            precio_entrada = sesion_admin(lista_peliculas, lista_salas, lista_id_sala, lista_sala_asignada, lista_horarios, mapa_reservas, precio_entrada)
+            precio_entrada = sesion_admin(cartelera, lista_salas, lista_id_sala, mapa_reservas, precio_entrada)
         elif usuario is not None:
-            sesion_usuario(lista_peliculas, lista_salas, lista_id_sala, lista_sala_asignada, lista_horarios, mapa_reservas, precio_entrada, usuario)
+            sesion_usuario(cartelera, lista_salas, lista_id_sala, mapa_reservas, precio_entrada, usuario)
         else:
             print("\nUSUARIO O CONTRASEÑA INCORRECTOS. INTENTE NUEVAMENTE.")
         funciones_principal = menu_principal()
