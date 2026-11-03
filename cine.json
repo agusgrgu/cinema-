@@ -1,0 +1,105 @@
+{
+    "precio_entrada": 20000,
+    "lista_salas": [
+        [
+            [
+                "L",
+                "L",
+                "L"
+            ],
+            [
+                "L",
+                "L",
+                "L"
+            ],
+            [
+                "L",
+                "L",
+                "L"
+            ]
+        ],
+        [
+            [
+                "L",
+                "L",
+                "L",
+                "L",
+                "L"
+            ],
+            [
+                "L",
+                "L",
+                "L",
+                "L",
+                "L"
+            ],
+            [
+                "L",
+                "L",
+                "L",
+                "L",
+                "L"
+            ],
+            [
+                "L",
+                "L",
+                "L",
+                "L",
+                "L"
+            ],
+            [
+                "L",
+                "L",
+                "L",
+                "L",
+                "L"
+            ]
+        ]
+    ],
+    "lista_id_sala": [
+        1111,
+        9920
+    ],
+    "cartelera": {
+        "Pocoyo": {
+            "sala": 1111,
+            "horarios": [
+                "10:00",
+                "12:00"
+            ]
+        }
+    },
+    "mapa_reservas": [
+        {
+            "sala": 1111,
+            "horario": "10:00",
+            "fila": 1,
+            "columna": 1,
+            "usuario": "pepe"
+        },
+        {
+            "sala": 1111,
+            "horario": "10:00",
+            "fila": 1,
+            "columna": 2,
+            "usuario": "pepe"
+        }
+    ],
+    "lista_usuarios": [
+        "pepe",
+        "juan"
+    ],
+    "lista_id_usuarios": [
+        1111,
+        6603
+    ],
+    "lista_contrasenas": [
+        "1234",
+        "1234"
+    ],
+    "lista_telefonos": [
+        "12-1234-1234",
+        "12-2234-2345"
+    ],
+    "contrasena_admin": "1234"
+}
