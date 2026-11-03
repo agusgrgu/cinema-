@@ -40,14 +40,49 @@ def contar_butacas(sala):
 # Modulo cartelera
 peliculas= {"titanic": 650, "star wars II": 420, "avengers": 135}
 horarios_peliculas = {"titanic": ["14:00", "18:00", "22:00"], "star wars II": ["15:00", "19:00", "21:00"], "avengers": ["16:00", "20:00", "23:00"]}
+
 def agrega_pelicula(cantidad):
-    #agrega la pelicula y su precio
     for i in range(cantidad):
+
         nombre = input("Ingrese el nombre de la película: ")
-        print("¿cuanto costara cada entrada?")
-        precio = verificar_entero()
+
+        if nombre in peliculas:
+            print("La película ya se encuentra en cartelera.")
+            continue
+
+        # INGRESO DEL PRECIO
+        while True:
+            try:
+                precio = int(input("Ingrese el precio de la entrada: "))
+
+                if precio <= 0:
+                    print("Error: El precio debe ser mayor que cero.")
+                else:
+                    break
+
+            except ValueError:
+                print("Error: Debe ingresar un número entero para el precio.")
+
+        # INGRESO DE LOS HORARIOS
+        while True:
+            horarios = input(
+                "Ingrese los horarios separados por comas "
+                "(ejemplo: 14:00,18:00,22:00): "
+            ).split(",")
+
+            patron = r"(?:[01][0-9]|2[0-3]):[0-5][0-9]"
+
+            if all(re.fullmatch(patron, horario.strip()) for horario in horarios):
+                horarios = [horario.strip() for horario in horarios]
+                break
+            else:
+                print("Error: Los horarios ingresados no tienen el formato correcto.")
+
+        # AGREGAR PELICULA
         peliculas[nombre] = precio
-    print("Películas agregadas exitosamente.")
+        horarios_peliculas[nombre] = horarios
+
+        print("Película agregada exitosamente.")
 
 def mostrar_cartelera():
     #muestra las entradas y sus precios junto con las entradas disponibles
@@ -65,6 +100,12 @@ def modifica_la_pelicula(pelicula):
         if modificar == "precio":
             print ("ingrese el precio de la pelicula")
             precioact= verificar_entero ()
+            if precioact <= 0:
+                print("Error: El precio debe ser mayor que cero.")
+                while precioact <= 0:
+                    precioact= verificar_entero ()
+                    if precioact <= 0:
+                        print("Error: El precio debe ser mayor que cero.")
             peliculas[pelicula] = precioact
         elif modificar == "nombre":
             nombreact= input("ingrese el nombre de la pelicula")
@@ -72,8 +113,8 @@ def modifica_la_pelicula(pelicula):
         elif modificar == "horario":
             print("de que pelicula desea modificar los horarios?")
             horarios = input("Ingrese los nuevos horarios separados por comas (ejemplo: 14:00,18:00,22:00): ").split(",")
-            patron= "[0-9]{2}:[0-9]{2}"
-            if all(re.match(patron, horario) for horario in horarios):
+            patron = r"(?:[01][0-9]|2[0-3]):[0-5][0-9]"
+            if all(re.fullmatch(patron, horario) for horario in horarios):
                 horarios_peliculas[pelicula] = horarios
             else:
                 print("Error: Los horarios ingresados no tienen el formato correcto.")
@@ -85,6 +126,7 @@ def pelicula_fuera(pelicula):
     #elimina la pelicula de la cartelera
     if pelicula in peliculas:
         del peliculas[pelicula]
+        del horarios_peliculas[pelicula]
         print("Película eliminada exitosamente.")
     else:
         print("La película no se encuentra en la cartelera.")
@@ -344,6 +386,7 @@ def main():
                         lista_usuarios.append(usuario)
             print(lista_usuarios)    
             contraseña = input("Cree una contraseña: ")
+            lista_contraseñas.append(contraseña)
             numero_telefonico = input("Ingrese su número de teléfono para ser comunicado en caso de que se necesite ")
             patron_telefono = "[0-9]{2}-[0-9]{4}-[0-9]{4}"
             numero= re.findall(patron_telefono, numero_telefonico)
@@ -406,12 +449,11 @@ def main():
                           agregopeli=agrega_pelicula(cantidad)
                       elif gestionar_cartelera == 2:
                           print("Quitar pelicula")
-                          try:
-                            nombre=input("que pelicula desea eliminar?")
-                          except "ValueError" and "TypeError":
-                            print("Error al ingresar el nombre de la película.")
+                          nombre = input("¿Qué pelicula desea eliminar? ")
+                          if nombre == "":
+                              print("Error al ingresar el nombre de la película.")
                           else:
-                            pelicula_fuera(nombre)
+                              pelicula_fuera(nombre)
                       else:
                           print("Opción inválida. Intente nuevamente.")
 
