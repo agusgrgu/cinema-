@@ -2,6 +2,7 @@ import re
 import random
 from shlex import join
 import salas
+import json
 
 """
 =====================================================================
@@ -163,9 +164,10 @@ def imprimir_funciones_admin():
     2 - Cambiar precio de entradas
     3 - Crear sala de cine
     4 - Mostrar estadisticas
-    5 - salir
+    5 - Mostrar historial de reservas
+    6 - salir
     """)
-    return pedir_opcion(1, 5)
+    return pedir_opcion(1, 6)
 
 
 def imprimir_funciones_usuario():
@@ -467,6 +469,23 @@ def pelicula_mas_vendida(ventas):
     except ValueError:
         return None
     return nombre if ventas[nombre] > 0 else None
+
+def mostrar_historial_reservas():
+    """
+    Muestra el historial de reservas registradas en el archivo "reservas.txt".
+    (Incluye las canceladas y las actuales)
+    """
+    try:
+        with open("reservas.txt", "r") as fichero:
+            historial = fichero.readlines()
+            if not historial:
+                print("\nNo hay reservas registradas.")
+                return
+            print("\n===== HISTORIAL DE RESERVAS =====")
+            for reserva in historial:
+                print(reserva.strip())
+    except FileNotFoundError:
+        print("\nNo se encontró el archivo de historial de reservas.")
  
  
 def mostrar_estadisticas(cartelera, lista_salas, lista_id_sala, mapa_reservas, precio_entrada):
@@ -509,15 +528,17 @@ def sesion_admin(cartelera, lista_salas, lista_id_sala, mapa_reservas, precio_en
     """
     print("\nBienvenido al menu de administradores")
     funciones_admin = imprimir_funciones_admin()
-    while funciones_admin != 5:
+    while funciones_admin != 6:
         if funciones_admin == 1:
             gestionar_cartelera(cartelera, lista_salas, lista_id_sala, mapa_reservas)
         elif funciones_admin == 2:
             precio_entrada = cambiar_precio(precio_entrada)
         elif funciones_admin == 3:
             crear_sala_cine(lista_salas, lista_id_sala)
-        else:
+        elif funciones_admin == 4:
             mostrar_estadisticas(cartelera, lista_salas, lista_id_sala, mapa_reservas, precio_entrada)
+        else:
+            mostrar_historial_reservas()
         funciones_admin = imprimir_funciones_admin()
     return precio_entrada
 
@@ -586,7 +607,7 @@ def guardar_reserva(canti_entradas, sala, usuario, id_sala, horario):
 
 def comprar_entradas(cartelera, lista_salas, lista_id_sala, precio_entrada, usuario, mapa_reservas):
     """
-    Permite elegir pelicula, horario, cantidad y butacas. Guarda las reservas en mapa_reservas.
+    Permite elegir pelicula, horario, cantidad y butacas. Guarda las reservas en mapa_reservas y guarda la venta en historial.
     """
     nombre = elegir_pelicula(cartelera)
     id_sala = cartelera[nombre]["sala"]
@@ -602,6 +623,10 @@ def comprar_entradas(cartelera, lista_salas, lista_id_sala, precio_entrada, usua
     reservas = dict(guardar_reserva(cantidad, sala, usuario, id_sala, horario))
     mapa_reservas.update(reservas)
     print(f"\nCompra exitosa. Total a pagar: $ {precio_entrada * cantidad}")
+    
+    fichero = open("reservas.txt", "a")
+    fichero.write(f"{usuario} | {nombre} | Sala ID {id_sala} | {horario} | Butacas: {', '.join([f'Fila {r[2]}, Columna {r[3]}' for r in reservas])}\n")
+    fichero.close()
 
 
 def consultar_reservas(cartelera, mapa_reservas, usuario):
@@ -635,6 +660,63 @@ def sesion_usuario(cartelera, lista_salas, lista_id_sala, mapa_reservas, precio_
             comprar_entradas(cartelera, lista_salas, lista_id_sala, precio_entrada, usuario, mapa_reservas)
         funciones_usuario = imprimir_funciones_usuario()
 
+def reservas_a_lista(mapa_reservas):
+    """
+    Convierte el mapa de reservas en una lista de diccionarios para guardar en JSON.
+    """
+    return [{"sala": id_sala, "horario": horario, "fila": fila, "columna": columna, "usuario": usuario}
+            for (id_sala, horario, fila, columna), usuario in mapa_reservas.items()]
+
+def lista_a_reservas(lista):
+    """
+    Convierte una lista de diccionarios en un mapa de reservas.
+    """
+    return {(reserva["sala"], reserva["horario"], reserva["fila"], reserva["columna"]): reserva["usuario"]
+            for reserva in lista}
+
+def guardar_datos(precio_entrada, lista_salas, lista_id_sala, cartelera, mapa_reservas, lista_usuarios, lista_id_usuarios, lista_contraseñas, lista_telefonos, contraseña_admin):
+    """
+    Guarda los datos del cine en un archivo JSON.
+    """
+    datos = {
+        "precio_entrada": precio_entrada,
+        "lista_salas": lista_salas,
+        "lista_id_sala": lista_id_sala,
+        "cartelera": cartelera,
+        "mapa_reservas": reservas_a_lista(mapa_reservas),
+        "lista_usuarios": lista_usuarios,
+        "lista_id_usuarios": lista_id_usuarios,
+        "lista_contrasenas": lista_contraseñas,
+        "lista_telefonos": lista_telefonos,
+        "contrasena_admin": contraseña_admin
+    }
+    with open("cine.json", "w") as archivo:
+        json.dump(datos, archivo, indent=4)
+
+def cargar_datos():
+    """
+    Carga los datos del cine desde un archivo JSON.
+    """
+    try:
+        with open("cine.json", "r") as archivo:
+            datos = json.load(archivo)
+            datos["mapa_reservas"] = lista_a_reservas(datos["mapa_reservas"])
+            return datos
+    except FileNotFoundError:
+        print("Archivo de datos no encontrado. Se iniciará con datos vacíos.")
+        return {
+            "precio_entrada": 10000,
+            "lista_salas": [salas.crear_sala(3, 3)],
+            "lista_id_sala": [1111],
+            "cartelera": {},
+            "mapa_reservas": {},
+            "lista_usuarios": [],
+            "lista_id_usuarios": [],
+            "lista_contrasenas": [],
+            "lista_telefonos": [],
+            "contrasena_admin": None
+        }
+
 
 """
 -------------------------------------- ↓↓↓ EMPIEZA EL PROGRAMA PRINCIPAL ↓↓↓ ----------------------------------------------------------------------
@@ -642,6 +724,7 @@ def sesion_usuario(cartelera, lista_salas, lista_id_sala, mapa_reservas, precio_
 
 
 def main():
+    """
                                                     # ↓↓↓ Tipo de dato que ocupa ↓↓↓
     precio_entrada = 10000                          # int: precio de entrada (igual para todas las peliculas)
     lista_salas = [salas.crear_sala(3, 3)]          # matriz: "L" = libre, "O" = ocupada, mismo orden que lista_id_sala
@@ -654,6 +737,18 @@ def main():
 
     mapa_reservas = {(1111, "10:00", 1, 1): "pepe"} # dict: {(id_sala, horario, fila, columna): usuario} para guardar las reservas de butacas
     contraseña_admin = None                         # string: contraseña del administrador, None si no se creo aun
+    """
+    datos = cargar_datos()
+    precio_entrada = datos["precio_entrada"]
+    lista_salas = datos["lista_salas"]
+    lista_id_sala = datos["lista_id_sala"]
+    cartelera = datos["cartelera"]
+    mapa_reservas = datos["mapa_reservas"]
+    lista_usuarios = datos["lista_usuarios"]
+    lista_id_usuarios = datos["lista_id_usuarios"]
+    lista_contraseñas = datos["lista_contrasenas"]
+    lista_telefonos = datos["lista_telefonos"]
+    contraseña_admin = datos["contrasena_admin"]
 
     funciones_principal = menu_principal()
     while funciones_principal != 3:
@@ -671,5 +766,6 @@ def main():
         funciones_principal = menu_principal()
 
     print("Saliendo del sistema...")
+    guardar_datos(precio_entrada, lista_salas, lista_id_sala, cartelera, mapa_reservas, lista_usuarios, lista_id_usuarios, lista_contraseñas, lista_telefonos, contraseña_admin)
 
 main()
