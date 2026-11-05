@@ -1,0 +1,118 @@
+"""
+ Pruebas unitarias
+ Este archivo contiene 10 pruebas unitarias que verifican el correcto funcionamiento de las funciones del proyecto
+"""
+import cine_final
+
+
+def mostrar_resultado(numero, tipo, funcion, datos, esperado, obtenido):
+    """Imprime el informe de una prueba y devuelve True si fue aprobada."""
+    aprobada = (esperado == obtenido)
+    print(f"Prueba {numero} ({tipo}) - funcion: {funcion}")
+    print(f"   Datos:     {datos!r}")
+    print(f"   Esperado:  {esperado!r}")
+    print(f"   Obtenido:  {obtenido!r}")
+    print(f"   Resultado: {'APROBADA' if aprobada else 'FALLIDA'}")
+    print()
+    return aprobada
+
+"""
+ CASOS VALIDOS: datos correctos, la funcion debe dar el resultado normal
+"""
+
+def prueba_1():
+    datos = "14:30"
+    esperado = True
+    obtenido = cine_final.es_horario_valido(datos)
+    return mostrar_resultado(1, "valido", "es_horario_valido", datos, esperado, obtenido)
+
+
+def prueba_2():
+    datos = "pepe1"
+    esperado = True
+    obtenido = cine_final.es_usuario_valido(datos)
+    return mostrar_resultado(2, "valido", "es_usuario_valido", datos, esperado, obtenido)
+
+
+def prueba_3():
+    datos = (10, 2)
+    esperado = 5.0
+    obtenido = cine_final.dividir_seguro(10, 2)
+    return mostrar_resultado(3, "valido", "dividir_seguro", datos, esperado, obtenido)
+
+
+def prueba_4():
+    # Dos entradas de la sala 1111 y una de la sala 2222
+    reservas = {(1111, "10:00", 1, 1): "pepe",
+                (1111, "10:00", 1, 2): "pepe",
+                (2222, "18:00", 3, 3): "juan"}
+    datos = "sala 1111"
+    esperado = 2
+    obtenido = cine_final.entradas_de_sala(reservas, 1111)
+    return mostrar_resultado(4, "valido", "entradas_de_sala", datos, esperado, obtenido)
+
+"""
+# CASOS INVALIDOS: datos incorrectos, la funcion debe rechazarlos
+"""
+
+def prueba_5():
+    datos = "1234"          # falta el formato 00-0000-0000
+    esperado = False
+    obtenido = cine_final.es_telefono_valido(datos)
+    return mostrar_resultado(5, "invalido", "es_telefono_valido", datos, esperado, obtenido)
+
+
+def prueba_6():
+    datos = "ab"            # muy corta: pide minimo 4 caracteres
+    esperado = False
+    obtenido = cine_final.es_contraseña_valida(datos)
+    return mostrar_resultado(6, "invalido", "es_contraseña_valida", datos, esperado, obtenido)
+
+
+def prueba_7():
+    datos = "pe pe"         # tiene un espacio
+    esperado = False
+    obtenido = cine_final.es_usuario_valido(datos)
+    return mostrar_resultado(7, "invalido", "es_usuario_valido", datos, esperado, obtenido)
+
+
+"""
+# CASOS LIMITE
+"""
+
+def prueba_8():
+    datos = "24:00"         # 23:59 es el ultimo horario valido, 24:00 ya no existe
+    esperado = False
+    obtenido = cine_final.es_horario_valido(datos)
+    return mostrar_resultado(8, "limite", "es_horario_valido", datos, esperado, obtenido)
+
+
+def prueba_9():
+    datos = (5, 0)          # dividir por cero no debe romper el programa
+    esperado = 0.0
+    obtenido = cine_final.dividir_seguro(5, 0)
+    return mostrar_resultado(9, "limite", "dividir_seguro", datos, esperado, obtenido)
+
+
+def prueba_10():
+    # La butaca (1,1) esta reservada a las 10:00, pero a las 14:00 debe seguir libre
+    sala = cine_final.salas.crear_sala(2, 2)
+    reservas = {(1111, "10:00", 1, 1): "pepe"}
+    datos = "sala 2x2, butaca (1,1) reservada a las 10:00, se consulta las 14:00"
+    esperado = [["L", "L"], ["L", "L"]]
+    obtenido = cine_final.armar_sala_horario(sala, 1111, "14:00", reservas)
+    return mostrar_resultado(10, "adicional", "armar_sala_horario", datos, esperado, obtenido)
+
+
+"""
+ --------------------------------------------------------------------------------------------------------------
+"""
+
+def ejecutar_pruebas():
+    print("=== PRUEBAS UNITARIAS ===\n")
+    resultados = [prueba_1(), prueba_2(), prueba_3(), prueba_4(), prueba_5(),
+                  prueba_6(), prueba_7(), prueba_8(), prueba_9(), prueba_10()]
+    print(f"RESUMEN: {resultados.count(True)} de {len(resultados)} pruebas aprobadas")
+
+
+ejecutar_pruebas()

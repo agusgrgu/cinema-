@@ -768,4 +768,5 @@ def main():
     print("Saliendo del sistema...")
     guardar_datos(precio_entrada, lista_salas, lista_id_sala, cartelera, mapa_reservas, lista_usuarios, lista_id_usuarios, lista_contraseñas, lista_telefonos, contraseña_admin)
 
-main()
+if __name__ == "__main__":
+    main()
